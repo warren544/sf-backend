@@ -144,3 +144,89 @@ def test_delete_contact(client, payload):
 def test_root_lists_entrypoints(client):
     body = client.get("/").json()
     assert body["contacts"] == BASE
+
+def test_create_contact_with_photo(client, payload):
+    photo_url = "https://example.com/photos/ada-lovelace.jpg"
+
+    response = client.post(
+        BASE,
+        json={
+            **payload,
+            "photo_url": photo_url,
+        },
+    )
+
+    assert response.status_code == 201
+
+    body = response.json()
+    assert body["photo_url"] == photo_url
+
+
+def test_get_contact_returns_photo(client, payload):
+    photo_url = "https://example.com/photos/grace-hopper.jpg"
+
+    created = client.post(
+        BASE,
+        json={
+            **payload,
+            "photo_url": photo_url,
+        },
+    )
+    assert created.status_code == 201
+
+    contact_id = created.json()["id"]
+
+    response = client.get(f"{BASE}/{contact_id}")
+
+    assert response.status_code == 200
+    assert response.json()["photo_url"] == photo_url
+
+
+def test_replace_contact_photo(client, payload):
+    original_photo = "https://example.com/photos/original.jpg"
+    replacement_photo = "https://example.com/photos/replacement.jpg"
+
+    created = client.post(
+        BASE,
+        json={
+            **payload,
+            "photo_url": original_photo,
+        },
+    )
+    assert created.status_code == 201
+
+    contact_id = created.json()["id"]
+
+    response = client.put(
+        f"{BASE}/{contact_id}",
+        json={
+            **payload,
+            "photo_url": replacement_photo,
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["photo_url"] == replacement_photo
+
+
+def test_remove_contact_photo(client, payload):
+    photo_url = "https://example.com/photos/ada.jpg"
+
+    created = client.post(
+        BASE,
+        json={
+            **payload,
+            "photo_url": photo_url,
+        },
+    )
+    assert created.status_code == 201
+
+    contact_id = created.json()["id"]
+
+    response = client.patch(
+        f"{BASE}/{contact_id}",
+        json={"photo_url": None},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["photo_url"] is None
