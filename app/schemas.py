@@ -70,6 +70,28 @@ class ContactBase(BaseModel):
         examples=["Met at the SF hackathon."],
     )
 
+    photo_url: str | None = Field(
+        default=None,
+        max_length=7_000_000,
+        description="Profile photo URL or image data URL.",
+    )
+
+    @field_validator("photo_url")
+    @classmethod
+    def validate_photo_url(cls, value: str | None) -> str | None:
+        if value is None or value == "":
+            return None
+
+        if not (
+            value.startswith("http://")
+            or value.startswith("https://")
+            or value.startswith("data:image/")
+        ):
+            raise ValueError(
+                "photo_url must be an HTTP(S) URL or image data URL"
+            )
+
+        return value
 
 _FULL_EXAMPLE = {
     "first_name": "Ada",
