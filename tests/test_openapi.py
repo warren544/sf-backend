@@ -144,6 +144,23 @@ def test_request_bodies_carry_examples(spec):
     assert patch["examples"]
     assert "required" not in patch  # every field on PATCH is optional
 
+def test_openapi_exposes_photo_url(client):
+    response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+
+    document = response.json()
+    schemas = document["components"]["schemas"]
+
+    for schema_name in (
+        "ContactCreate",
+        "ContactReplace",
+        "ContactUpdate",
+        "ContactRead",
+    ):
+        assert schema_name in schemas
+        assert "photo_url" in schemas[schema_name]["properties"]
+
 
 def test_put_and_patch_semantics_are_explained(spec):
     assert "cleared" in spec["paths"][ITEM_PATH]["put"]["description"]
